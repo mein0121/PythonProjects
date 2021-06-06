@@ -45,7 +45,7 @@ class handDetector():
 
                 # if idx == 8:  # idx = 손점의 순서. 0 = 손바닥 4 = 엄지끝.
                 if draw:
-                    cv2.circle(img, (centerX, centerY), 7, (255, 0, 0), cv2.FILLED)
+                    cv2.circle(img, (centerX, centerY), 3, (0, 0, 0), cv2.FILLED)
 
         return landmarkList
 
