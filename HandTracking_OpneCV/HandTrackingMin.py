@@ -1,6 +1,5 @@
 import cv2
 import mediapipe as mp
-import tensorflow as tf
 import time
 
 cap = cv2.VideoCapture(0)
