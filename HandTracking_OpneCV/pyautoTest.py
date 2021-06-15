@@ -12,8 +12,9 @@ p = ['a', 'b', 'c', 'd']
 # pyautogui.leftClick()
 # pyautogui.write("Hello World")
 # pyautogui.keyDown("a")
-#
-# pyautogui.press(p)
+
+a = "a"
+pyautogui.press(p)
 
 # pyautogui.hotkey('ctrl','shift','esc')
 # >>> pyautogui.keyDown('ctrl')
@@ -46,13 +47,13 @@ p = ['a', 'b', 'c', 'd']
 # print(button7Center)
 #
 # pyautogui.moveTo('calc7key.png')# shortcut version
-try:
-    # pyautogui.leftClick('calc7key.png')
-    # pyautogui.leftClick('youtube.png')
-    # pyautogui.leftClick('seoulnews.png')
-    pyautogui.leftClick('naver.png')
-except TypeError:
-    print("Image not found")
+# try:
+#     # pyautogui.leftClick('calc7key.png')
+#     # pyautogui.leftClick('youtube.png')
+#     # pyautogui.leftClick('seoulnews.png')
+#     pyautogui.leftClick('naver.png')
+# except TypeError:
+#     print("Image not found")
 
 # print('Press Ctrl-C to quit.')
 # try:

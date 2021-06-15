@@ -20,6 +20,8 @@ class handDetector():
                                         self.min_tracking_confidence)
         self.mpDraw = mp.solutions.drawing_utils
 
+        self.tipIds = [4, 8, 12, 16, 20]
+
     def findHands(self, img, draw=True):
 
         imgRGB = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -32,22 +34,47 @@ class handDetector():
         return img
 
     def findPosition(self, img, handNo=0, draw=True):
-        landmarkList = []
+        xList = []
+        yList = []
+        bbox = []
+        self.lmList = []
         if self.results.multi_hand_landmarks:
             myHand = self.results.multi_hand_landmarks[handNo]
             for idx, lm in enumerate(myHand.landmark):
                 # print(idx, lm) # 손표시 점의 idx와 좌표.
                 h, w, c = img.shape
-                centerX, centerY = int(lm.x * w), int(lm.y * h)
-                # print(idx, centerX, centerY)  # center의 좌표.
+                cx, cy = int(lm.x * w), int(lm.y * h)
+                xList.append(cx)
+                yList.append(cy)
+                # print(idx, cx, cy)  # center의 좌표.
 
-                landmarkList.append([idx,centerX,centerY])
+                self.lmList.append([idx, cx, cy])
 
                 # if idx == 8:  # idx = 손점의 순서. 0 = 손바닥 4 = 엄지끝.
                 if draw:
-                    cv2.circle(img, (centerX, centerY), 3, (0, 0, 0), cv2.FILLED)
+                    cv2.circle(img, (cx, cy), 3, (0, 0, 0), cv2.FILLED)
+            xmin, xmax = min(xList), max(xList)
+            ymin, ymax = min(yList), max(yList)
+            bbox = (xmin, ymin, xmax, ymax)
+            if draw:
+                cv2.rectangle(img, (bbox[0]-20, bbox[1]-20), (bbox[2]+20, bbox[3]+20), (0, 255, 0), 2)
+        return self.lmList, bbox
 
-        return landmarkList
+    def fingersUp(self):
+        fingers = []
+
+        if self.lmList[self.tipIds[0]][1] < self.lmList[self.tipIds[0] - 1][1]:
+            fingers.append(1)
+        else:
+            fingers.append(0)
+
+        # 4 Fingers
+        for id in range(1, 5):
+            if self.lmList[self.tipIds[id]][2] < self.lmList[self.tipIds[id] - 2][2]:
+                fingers.append(1)
+            else:
+                fingers.append(0)
+        return fingers
 
 
 def main():
@@ -61,7 +88,7 @@ def main():
         img = detector.findHands(img)
         lmList = detector.findPosition(img)
         if len(lmList) != 0:
-            print(lmList[4]) # 4번째 포인트 엄지손끝
+            print(lmList[4])  # 4번째 포인트 엄지손끝
 
         cTime = time.time()
         fps = 1 / (cTime - pTime)
