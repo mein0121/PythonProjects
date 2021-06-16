@@ -22,7 +22,7 @@ input_arr = []  # frame 저장 변수
 
 ########
 prev_time = 0
-FPS = 60
+FPS = 30
 ########
 
 
@@ -35,8 +35,9 @@ while True:
 
     img = detector.findHands(img)
     landmark_list, bbox = detector.findPosition(img, draw=False)
-    print(landmark_list)
+
     curr_time = time.time() - prev_time
+    # 초당 프레임수 제한.
     if (success is True) and (curr_time > 1. / FPS):
         prev_time = time.time()
 
@@ -56,7 +57,7 @@ while True:
                     curr_x, curr_y = input_arr[i]
                     cv2.line(Canvas, (prev_x, prev_y), (curr_x, curr_y), (255, 0, trans_color), 15)
                     prev_x, prev_y = curr_x, curr_y
-                    trans_color += 5
+                    trans_color += 25
 
                 # output값을 보기 위한 png파일 변환
                 t = datetime.datetime.now().strftime("%Y-%M-%d %H-%M-%S")
