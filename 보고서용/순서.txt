@@ -1,0 +1,43 @@
+[0.6713547110557556, 0.7749999761581421
+
+test 2
+LEARNING_RATE = 0.001
+N_EPOCHS = 50
+N_BATCHS = 50
+N_CLASS = 4 # 클래스 개수
+CLASS_MODE = 'categorical'
+INPUT_SHAPE = (640, 360, 3) # 학습할 이미지 shape
+IMAGE_SIZE = 224
+IMAGE_SIZE2 = 224
+[0.5552066564559937, 0.824999988079071]
+
+
+test3
+# 하이퍼 파라미터
+LEARNING_RATE = 0.001
+N_EPOCHS = 50
+N_BATCHS = 50
+N_CLASS = 4 # 클래스 개수
+CLASS_MODE = 'categorical'
+INPUT_SHAPE = (640, 360, 3) # 학습할 이미지 shape
+IMAGE_SIZE = 224
+IMAGE_SIZE2 = 224
+
+#flatten layer 추가
+    model.add(layers.Flatten())
+    model.add(layers.Dropout(rate=0.5))
+[0.4631568491458893, 0.8083333373069763]
+
+test4
+LEARNING_RATE = 0.001
+N_EPOCHS = 50
+N_BATCHS = 50
+N_CLASS = 4 # 클래스 개수
+CLASS_MODE = 'categorical'
+INPUT_SHAPE = (640, 360, 3) # 학습할 이미지 shape
+IMAGE_SIZE = 224
+IMAGE_SIZE2 = 224
+[0.5027714967727661, 0.7749999761581421]
+
+test5
+[0.5065643787384033, 0.7583333253860474]
