@@ -1,75 +1,53 @@
 import HandTrackingModule as htm
 import GestureModelModule as gmm
-import AutopyClass
 from tensorflow import keras
+import numpy as np
 import cv2
-import webcam as wb
-import sys
-
+from Autopy import AutopyClass
+ 
 class demopy():
     def __init__(self):
-        #####################################
-        # webcam size 지정
-        self.hCam, self.wCam = 640, 640
-        # model 설정 값 초기 정의
+        # 웹캡 사이즈 설정 변수
+        self.hCam, self.wCam = 640, 640     
+        # 필요한 변수
+        self.draw_arr = []
+        self.in_check = 0
+        self.out_check = 0
+        self.pyauto = AutopyClass()
+        # 모델 관련 변수
         self.model_selection = 'CNN'
         self.conf_limit = 0.75
-        self.imdraw = wb.DryHand()
-        
-        self.gesture_model = keras.models.load_model('C:\\mypy\model\\vgg16_model_4cls_ws_id_2-3_noangle.h5')
-        # self.gesture_model = keras.models.load_model('./model/vgg16_model_4cls_ws_id_2-3_noangle.h5')
         self.detector = htm.handDetector(maxHands=1, detectionCon=0.75)
-        #####################################
+        self.gesture_model = keras.models.load_model('model/vgg16_model_8cls_2dropnorm_randomsd.h5')
 
-    def demo(self):
-        cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
-        # webcam size 조정
-        cap.set(3, self.wCam)
-        cap.set(4, self.hCam)
-        draw_arr = []
-        in_check = 0
-        out_check = 0
-        control_mode = False  
+    def predict(self, img, modeChange):
+        # 손 인식시
+        img = self.detector.findHands(img)
+        self.landmark_list, _ = self.detector.findPosition(img, draw=False)
+        action = ''
+        imgCanvas = None
+        control_mode = False
+        if self.landmark_list:
+            self.out_check = 0
+            self.fingers = self.detector.fingersUp()
+            # 검지가 펴졌을때만 control mode
+            control_mode = (self.fingers[1]==1) and (1 not in self.fingers[2:])
+            if control_mode:
+                self.draw_arr.append(self.landmark_list[8][1:])
+                cv2.circle(img, tuple(self.landmark_list[8][1:]), 7, (255,0,0), cv2.FILLED)
+        else:
+            self.out_check += 1
+            if self.out_check == 10:
+                if 30 < len(self.draw_arr) <= 100:
+                    # 저장한 좌표로 input 데이터 생성
+                    # 모델 추론
+                    self.draw_arr = self.draw_arr[10:-7] # 앞, 뒤 10 frame 씩 제외 ## -5
+                    input_data, imgCanvas = gmm.trans_input(self.draw_arr, self.wCam, self.hCam, self.model_selection)
+                    pred, confidence = gmm.predict(self.gesture_model, input_data)
+                    
+                    if confidence > self.conf_limit:
+                        modes = [self.pyauto.youtube, self.pyauto.webMode, self.pyauto.presentMode]
+                        action = modes[modeChange](pred)
+                self.draw_arr.clear()
 
-        while True:
-            success, self.img = cap.read()
-            self.img = cv2.flip(self.img, 1)
-            # 이미지에서 손인식
-            self.img = self.detector.findHands(self.img)
-            landmark_list, bbox = self.detector.findPosition(self.img, draw=False)
-            # 손 인식 되면
-            if landmark_list:
-                out_check = 0
-                fingers = self.detector.fingersUp()
-                if 1 not in fingers[1:]:
-                    # 주먹 쥐면 검지의 좌표 저장
-                    in_check += 1
-                    if in_check == 10:
-                        in_check = 0
-                        control_mode = True
-                if control_mode:
-                    draw_arr.append(landmark_list[8][1:])
-                    cv2.circle(self.img, tuple(landmark_list[8][1:]), 7, (255,0,0), cv2.FILLED)
-            else:
-                # 손 인식 안되면
-                out_check += 1
-                if out_check == 10 and control_mode:
-                    control_mode = False
-                    if not control_mode:
-                        if 20 < len(draw_arr) <= 100:
-                            # 저장한 좌표로 input 데이터 생성
-                            # 모델 추론
-                            draw_arr = draw_arr[10:-10] # 앞, 뒤 10 frame 씩 제외
-                            input_data, imgCanvas = gmm.trans_input(draw_arr, self.wCam, self.hCam, self.model_selection)
-                            pred, confidence = gmm.predict(self.gesture_model, input_data)
-                            
-                            # 예측률 75% 이상 input 데이터 저장
-                            if confidence > self.conf_limit:
-                                AutopyClass.window_controller(pred)
-                        draw_arr.clear()
-            cv2.waitKey(0)
-            cont = self.imdraw.imgdraw(self.img)
-            if not cont:
-                cap.release()
-                sys.exit()
-
+        return control_mode, action, imgCanvas

@@ -6,10 +6,21 @@ sys.setrecursionlimit(5000)
 
 block_cipher = None
 
+def get_mediapipe_path():
+    import mediapipe
+    mediapipe_path = mediapipe.__path__[0]
+    return mediapipe_path
+
+added_files = [
+    ('images/*.PNG','images'),
+    ('model/vgg16_model_8cls_2dropnorm_randomsd.h5', 'model'),
+    (os.path.join(os.path.dirname(importlib.import_module('tensorflow').__file__),"lite/experimental/microfrontend/python/ops/_audio_microfrontend_op.so"),"tensorflow/lite/experimental/microfrontend/python/ops/")
+]
+
 a = Analysis(['main.py'],
-             pathex=['C:\\mypy'],
+             pathex=['C:\\Users\\mein0\\01_playdata_final_project\\deployment'],
              binaries=[],
-             datas=[(os.path.join(os.path.dirname(importlib.import_module('tensorflow').__file__),"lite/experimental/microfrontend/python/ops/_audio_microfrontend_op.so"),"tensorflow/lite/experimental/microfrontend/python/ops/")],
+             datas=added_files,
              hiddenimports=[],
              hookspath=[],
              runtime_hooks=[],
@@ -20,6 +31,10 @@ a = Analysis(['main.py'],
              noarchive=False)
 pyz = PYZ(a.pure, a.zipped_data,
              cipher=block_cipher)
+
+mediapipe_tree = Tree(get_mediapipe_path(), prefix='mediapipe', excludes=["*.pyc"])
+a.datas += mediapipe_tree
+a.binaries = filter(lambda x: 'mediapipe' not in x[0], a.binaries)
 
 exe = EXE(pyz,
           a.scripts,
